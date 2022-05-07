@@ -31,3 +31,20 @@ pred_GP <- function(x, x_star, l, sigma_f, sigma_n, n, y) {
   f_var = K(x_star, x_star, l, sigma_f) - t(k_star) %*% k_inv %*% k_star
   list(f_mean, f_var)
 }
+
+# Function to sample, predict, and plot
+plot_GP = function(n_samp, n_pred, l, sigma_f, sigma_n) {
+  # Grid to sample/predict values over
+  x_grid <- seq(0, 1, len = n_samp)
+  x_pred <- seq(0, 1, len = n_pred)
+  
+  # Sample from GP
+  y_grid = samp_GP(x_grid, l, sigma_f, n_samp, sigma_n)
+  
+  # Predict mean and variance given samples
+  y_pred = pred_GP(x_grid, x_pred, l, sigma_f, sigma_n, n_samp, y_grid)
+  
+  # Plot samples
+  plot(x_grid, y_grid, main = "", xlab = "x", ylab = "y")
+  lines(x_pred, y_pred[[1]], col = 2)
+}
