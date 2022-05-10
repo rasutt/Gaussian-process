@@ -2,7 +2,7 @@
 title: "Gaussian Processes"
 author: "Robin Aldridge-Sutton"
 date: "07/05/2022"
-output: github_document
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
