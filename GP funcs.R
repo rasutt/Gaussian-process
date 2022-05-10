@@ -1,19 +1,30 @@
 # Functions to sample from and predict values of a Gaussian process.
 
-# Squared distance function
-sq_dist <- function(x1, x2) (x1 - x2)^2
-
 # Covariance function - squared exponential
 K <- function(x1, x2, l, sigma_f) {
-  sigma_f^2 * exp(-outer(x1, x2, sq_dist) / (2 * l^2))
+  sigma_f^2 * exp(-outer(x1, x2, function(x1, x2) (x1 - x2)^2) / (2 * l^2))
 }
 
 # Function to sample from the GP
-samp_GP <- function(x, l, sigma_f, n, sigma_n) {
-  Sigma <- K(x, x, l, sigma_f)
-  L <- try(chol(Sigma), T)
-  if (inherits(L, "try-error")) return(numeric(n))
-  L %*% rnorm(n)
+samp_GP <- function(x, l, sigma_f, n_samp) {
+  # Square-root of covariance matrix multiplied by standard normal vector
+  chol(K(x, x, l, sigma_f)) %*% rnorm(n_samp)
+}
+
+# Plot samples from a GP
+plot_samp = function(n_samp, n_real, l, sigma_f) {
+  # Grid to sample/predict values over
+  x_grid <- seq(0, 1, len = n_samp)
+  
+  # Plot samples
+  matplot(x_grid, matrix(c(0, 1.96 * sigma_f, -1.96 * sigma_f), n_samp, 3, T),
+          main = "", xlab = "x", ylab = "y", t = 'l', col = 2, lty = c(1, 2, 2))
+  
+  # Sample from GP and plot
+  for (r in 1:n_real) {
+    y_grid = samp_GP(x_grid, l, sigma_f, n_samp)
+    lines(x_grid, y_grid)
+  }
 }
 
 # Function for Moore-Penrose pseudo-inverse via singular value decomposition
@@ -39,7 +50,7 @@ plot_GP = function(n_samp, n_pred, l, sigma_f, sigma_n) {
   x_pred <- seq(0, 1, len = n_pred)
   
   # Sample from GP
-  y_grid = samp_GP(x_grid, l, sigma_f, n_samp, sigma_n)
+  y_grid = samp_GP(x_grid, l, sigma_f, n_samp)
   
   # Predict mean and variance given samples
   y_pred = pred_GP(x_grid, x_pred, l, sigma_f, sigma_n, n_samp, y_grid)
@@ -47,4 +58,6 @@ plot_GP = function(n_samp, n_pred, l, sigma_f, sigma_n) {
   # Plot samples
   plot(x_grid, y_grid, main = "", xlab = "x", ylab = "y")
   lines(x_pred, y_pred[[1]], col = 2)
+  lines(x_pred, y_pred[[1]] + 1.96 * sqrt(diag(y_pred[[2]])), col = 2, lty = 2)
+  lines(x_pred, y_pred[[1]] - 1.96 * sqrt(diag(y_pred[[2]])), col = 2, lty = 2)
 }

@@ -2,7 +2,9 @@
 title: "Gaussian Processes"
 author: "Robin Aldridge-Sutton"
 date: "07/05/2022"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -14,20 +16,42 @@ knitr::opts_chunk$set(echo = TRUE)
 source("GP funcs.R")
 ```
 
-A Gaussian process (GP) is a distribution over functions such that for any finite set of input values the function values have a multivariate Gaussian distribution.
+A Gaussian process (GP) is stochastic process (a distribution over functions) such that for any finite set of input values the function values have a multivariate Gaussian distribution.
 
-A GP can be used as a functional prior.  The posterior is then the conditional distribution of functions given observed function values at a set of input values.
+A GP can be used as a functional prior, e.g. 
 
-I usually think of the prior being on parameters in a model for the data, and the posterior coming from the likelihood and the probability of the data with
+$$f(\mathbf{x}) \sim N(\mu(\mathbf{x}) = \mathbf{0}, \Sigma = K(\mathbf{x}, \mathbf{x})),$$
+$$K(\mathbf{x}, \mathbf{x}')_{i, j} = \sigma_f^2 \exp\left(\frac{(x_i - x'_j)^2}{2 l^2} \right).$$
+```{r}
+# Plot samples from a GP. Too many samples gives an error in the Cholesky
+# factorization of the covariance matrix, but why??  Smaller length-scales allow
+# larger samples...  Function sd makes no difference.
+plot_samp(
+  n_samp = 20, # Number of samples per realisation
+  n_real = 5, # Number of realisations
+  l = 0.1, # Length scale
+  sigma_f = 1 # Function standard deviation
+)
+```
 
-$$p(a|x) = \frac{p(a) p(x|a)}{p(x)}.$$
+The posterior is then the conditional distribution of functions given observed function values at a set of input values.  This has a simple analytical form.
 
-But I guess you can also put a prior on the data itself, and get a posterior by conditioning on the observed values
+$$f(\mathbf{x})|f(\mathbf{x}') \sim N(\mu(\mathbf{x}), \Sigma),$$
+$$\mu(\mathbf{x}) = K(\mathbf{x}', \mathbf{x})K(\mathbf{x}, \mathbf{x})^{-1}f(\mathbf{x}'),$$
+$$\Sigma = K(\mathbf{x}', \mathbf{x}') - K(\mathbf{x}', \mathbf{x})K(\mathbf{x}, \mathbf{x})^{-1} K(\mathbf{x}, \mathbf{x}').$$
 
-$$p(x_1|x_2) = \frac{p(x_1, x_2)}{p(x_2)}.$$
+```{r}
+plot_GP(
+  n_samp = 5, # Number of points to sample
+  n_pred = 100, # Number of data points to predict
+  l = 0.2, # Length scale
+  sigma_f = 2, # Function standard deviation
+  # sigma_n = 0.1 # Noise standard deviation
+  sigma_n = 0.1 # Noise standard deviation
+)
+```
 
-$$f(\mathbf{x}) \sim GP(\mu(\mathbf{x}) = \mathbf{0}, \Sigma = K(\mathbf{x}, \mathbf{x})),$$
-$$K(\mathbf{x}, \mathbf{x}')_{i, j} = \sigma_f^2 \exp\left(\frac{(x_i - x'_j)^2}{2 l^2} \right)$$
+
 $$\mathbf{y} = f(\mathbf{x}) + \epsilon,$$
 $$ \epsilon \sim N(0, \sigma_n^2 I_d)$$
 $$\mathbf{x} \in \mathbb{R}^d$$
@@ -38,7 +62,7 @@ par(mfrow = c(2, 2))
 for (i in 1:4)
   plot_GP(
     n_samp = 10, # Number of points to sample
-    n_pred = 40, # Number of data points to predict
+    n_pred = 100, # Number of data points to predict
     l = 0.2, # Length scale
     sigma_f = 2, # Function standard deviation
     sigma_n = 0.1 # Noise standard deviation
