@@ -22,12 +22,12 @@ A GP can be used as a functional prior, e.g.
 
 $$f(\mathbf{x}) \sim N(\mu(\mathbf{x}) = \mathbf{0}, \Sigma = K(\mathbf{x}, \mathbf{x})),$$
 $$K(\mathbf{x}, \mathbf{x}')_{i, j} = \sigma_f^2 \exp\left(\frac{(x_i - x'_j)^2}{2 l^2} \right).$$
+For some reason too many samples with too large of a length scale gives an error in the Cholesky factorization of the covariance matrix.  Function sd makes no difference.
+
 ```{r}
-# Plot samples from a GP. Too many samples gives an error in the Cholesky
-# factorization of the covariance matrix, but why??  Smaller length-scales allow
-# larger samples...  Function sd makes no difference.
+# Plot samples from a GP
 plot_samp(
-  n_samp = 20, # Number of samples per realisation
+  n_samp = 100, # Number of samples per realisation
   n_real = 5, # Number of realisations
   l = 0.1, # Length scale
   sigma_f = 1 # Function standard deviation
