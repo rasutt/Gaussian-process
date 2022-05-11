@@ -67,18 +67,34 @@ tr_mat_prod = function(mat1, mat2) {
 }
 
 # Partial derivatives of log marginal likelihood w.r.t. hyperparameters
-d_lml_d_hps = function(sigma_f, x, l, sigma_n, n_obs) {
+d_lml_d_hps = function(par, n, x, y) {
+  l = par[1]
+  sigma_f = par[2]
+  sigma_n = par[3]
   K = K(x, x, l, sigma_f)
-  
   K_y_inv = solve(K + sigma_n^2 * diag(n))
   alpha = K_y_inv %*% y
   mat_diff = alpha %*% t(alpha) - K_y_inv
-
-  list(
-    d_lml_d_sigma_f = tr_mat_prod(mat_diff, sigma_f * K),
-    d_lml_d_l = tr_mat_prod(mat_diff, K * outer(x, x, "-")^2 / l^3) / 2,
-    d_lml_d_sigma_n = diag(mat_diff) / 2
+  c(
+    tr_mat_prod(mat_diff, sigma_f * K), # d_lml_d_sigma_f
+    tr_mat_prod(mat_diff, K * outer(x, x, "-")^2 / l^3) / 2, # d_lml_d_l
+    sum(diag(mat_diff)) / 2 # d_lml_d_sigma_n
   )
+}
+
+# Log marginal likelihood
+lml <- function(par, n, x, y) {
+  l = par[1]
+  sigma_f = par[2]
+  sigma_n = par[3]
+  L = t(chol(K(x, x, l, sigma_f) + sigma_n^2 * diag(n)))
+  alpha = solve(t(L), solve(L, y))
+  t(y) %*% alpha / 2 + sum(diag(L)) - n/2 * log(2 * pi)
+}
+
+# Optimise log marginal likelihood w.r.t. hyperparameters
+opt_lml = function() {
+  opt = optim(par, lml, d_lml_d_hp, )
 }
 
 # Function to sample, predict, and plot
