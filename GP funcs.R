@@ -40,12 +40,22 @@ pinv <- function(mat) {
   svd_mat$v %*% diag(pinv_svs) %*% t(svd_mat$u)
 }
 
-# Function to predict from GP
-pred_GP <- function(x, x_star, l, sigma_f, sigma_n, n, y) {
+# Function to predict from GP using pseudo inverse - deprecated
+pred_GP_old <- function(x, x_star, l, sigma_f, sigma_n, n, y) {
   k_star <- K(x, x_star, l, sigma_f)
   k_inv <- pinv(K(x, x, l, sigma_f) + sigma_n^2 * diag(n))
   f_mean = t(k_star) %*% k_inv %*% y
   f_cov = K(x_star, x_star, l, sigma_f) - t(k_star) %*% k_inv %*% k_star
+  list(f_mean, f_cov)
+}
+
+# Function to predict from GP using Cholesky decomposition
+pred_GP <- function(x, x_star, l, sigma_f, sigma_n, n, y) {
+  k_star <- K(x, x_star, l, sigma_f)
+  L = t(chol(K(x, x, l, sigma_f) + sigma_n^2 * diag(n)))
+  f_mean = t(k_star) %*% solve(t(L), solve(L, y))
+  v = solve(L, k_star)
+  f_cov = K(x_star, x_star, l, sigma_f) - t(v) %*% v
   list(f_mean, f_cov)
 }
 

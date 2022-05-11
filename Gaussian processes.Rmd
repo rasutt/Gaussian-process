@@ -50,3 +50,4 @@ plot_GP_regression(
 
 There are various methods of model selection and hyper-parameter tuning.
 
+These notes were taken mainly from C. E. Rasmussen & C. K. I. Williams, Gaussian Processes for Machine Learning, the MIT Press, 2006.
