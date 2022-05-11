@@ -11,60 +11,42 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
-# Functions to sample from and predict values of a Gaussian process.
-source("GP funcs.R")
-```
-
-A Gaussian process (GP) is stochastic process (a distribution over functions) such that for any finite set of input values the function values have a multivariate Gaussian distribution.
-
-A GP can be used as a functional prior, e.g. 
+A Gaussian process (GP) is stochastic process (a distribution over functions) such that for any finite set of input values the function values have a multivariate Gaussian distribution, e.g. for $\mathbf{x} \in \mathbb{R}^d,$
 
 $$f(\mathbf{x}) \sim N(\mu(\mathbf{x}) = \mathbf{0}, \Sigma = K(\mathbf{x}, \mathbf{x})),$$
 $$K(\mathbf{x}, \mathbf{x}')_{i, j} = \sigma_f^2 \exp\left(\frac{(x_i - x'_j)^2}{2 l^2} \right).$$
-For some reason too many samples with too large of a length scale gives an error in the Cholesky factorization of the covariance matrix.  Function sd makes no difference.
 
 ```{r}
+# Functions to sample from and predict values of a Gaussian process.
+source("GP funcs.R")
+
 # Plot samples from a GP
-plot_samp(
-  n_samp = 100, # Number of samples per realisation
-  n_real = 5, # Number of realisations
+plot_GP_samps(
   l = 0.1, # Length scale
-  sigma_f = 1 # Function standard deviation
+  sigma_f = 1, # Function standard deviation
+  n_samps = 3 # Number of samples
 )
 ```
 
-The posterior is then the conditional distribution of functions given observed function values at a set of input values.  This has a simple analytical form.
+## Gaussian process regression
 
-$$f(\mathbf{x})|f(\mathbf{x}') \sim N(\mu(\mathbf{x}), \Sigma),$$
-$$\mu(\mathbf{x}) = K(\mathbf{x}', \mathbf{x})K(\mathbf{x}, \mathbf{x})^{-1}f(\mathbf{x}'),$$
-$$\Sigma = K(\mathbf{x}', \mathbf{x}') - K(\mathbf{x}', \mathbf{x})K(\mathbf{x}, \mathbf{x})^{-1} K(\mathbf{x}, \mathbf{x}').$$
+A GP can be used as a functional prior.  The posterior is then the conditional distribution of functions given observations at a set of input values.  If the observations are assumed to include some Gaussian noise this is another GP, e.g.
+
+$$\mathbf{y} = f(\mathbf{x}) + \epsilon,$$
+$$f(\mathbf{x}) \sim N(\mu(\mathbf{x}) = \mathbf{0}, \Sigma = K(\mathbf{x}, \mathbf{x})),$$
+$$ \epsilon \sim N(0, \sigma_n^2 I_d),$$
+$$\implies f(\mathbf{x}')|\mathbf{y}(\mathbf{x}) \sim N(\mu(\mathbf{x}'), \Sigma),$$
+$$\mu(\mathbf{x}') = K(\mathbf{x}', \mathbf{x}) [K(\mathbf{x}, \mathbf{x}) + \sigma_n^2 I_d]^{-1} \mathbf{y}(\mathbf{x}),$$
+$$\Sigma = K(\mathbf{x}', \mathbf{x}') - K(\mathbf{x}', \mathbf{x}) [K(\mathbf{x}, \mathbf{x}) + \sigma_n^2 I_d]^{-1} K(\mathbf{x}, \mathbf{x}').$$
 
 ```{r}
-plot_GP(
-  n_samp = 5, # Number of points to sample
-  n_pred = 100, # Number of data points to predict
-  l = 0.2, # Length scale
-  sigma_f = 2, # Function standard deviation
-  # sigma_n = 0.1 # Noise standard deviation
+plot_GP_regression(
+  n_obs = 5, # Number of points to observe
+  l = 0.1, # Length scale
+  sigma_f = 1, # Function standard deviation
   sigma_n = 0.1 # Noise standard deviation
 )
 ```
 
+There are various methods of model selection and hyper-parameter tuning.
 
-$$\mathbf{y} = f(\mathbf{x}) + \epsilon,$$
-$$ \epsilon \sim N(0, \sigma_n^2 I_d)$$
-$$\mathbf{x} \in \mathbb{R}^d$$
-
-```{r}
-par(mfrow = c(2, 2))
-
-for (i in 1:4)
-  plot_GP(
-    n_samp = 10, # Number of points to sample
-    n_pred = 100, # Number of data points to predict
-    l = 0.2, # Length scale
-    sigma_f = 2, # Function standard deviation
-    sigma_n = 0.1 # Noise standard deviation
-  )
-```

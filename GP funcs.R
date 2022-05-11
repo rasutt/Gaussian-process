@@ -5,30 +5,32 @@ K <- function(x1, x2, l, sigma_f) {
   sigma_f^2 * exp(-outer(x1, x2, function(x1, x2) (x1 - x2)^2) / (2 * l^2))
 }
 
-# Function to sample from the GP
-samp_GP <- function(x, l, sigma_f, n_samp) {
-  # Square-root of covariance matrix multiplied by standard normal vector - add
-  # independent variance for stability of Cholesky decomposition
-  t(chol(K(x, x, l, sigma_f) + 1e-10 * diag(n_samp))) %*% rnorm(n_samp)
+# Function to sample from a GP
+samp_GP <- function(K, n_obs, mu = 0) {
+  # Square-root of covariance matrix multiplied by standard normal vector.
+  # Independent variance added for stability of Cholesky decomposition.
+  # Transpose of Cholesky taken as upper triangular implementation rather than
+  # lower.
+  t(chol(K + 1e-10 * diag(n_obs))) %*% rnorm(n_obs) + mu
 }
 
 # Plot samples from a GP
-plot_samp = function(n_samp, n_real, l, sigma_f) {
+plot_GP_samps = function(l, sigma_f, n_samps) {
+  # Set number of samples
+  n_obs = 100
+
   # Grid to sample/predict values over
-  x <- seq(0, 1, len = n_samp)
+  x <- seq(0, 1, len = n_obs)
   
   # Plot samples
   matplot(
-    x, matrix(c(0, 1.96 * sigma_f, -1.96 * sigma_f), n_samp, 3, T),
+    x, matrix(c(0, 1.96 * sigma_f, -1.96 * sigma_f), n_obs, 3, T),
     main = "Samples from a Gaussian process", 
     xlab = "x", ylab = "f(x)", t = 'l', col = 2, lty = c(1, 2, 2)
   )
   
   # Sample from GP and plot
-  for (r in 1:n_real) {
-    y_grid = samp_GP(x, l, sigma_f, n_samp)
-    lines(x, y_grid)
-  }
+  for (r in 1:n_samps) lines(x, samp_GP(K(x, x, l, sigma_f), n_obs))
 }
 
 # Function for Moore-Penrose pseudo-inverse via singular value decomposition
@@ -43,28 +45,35 @@ pred_GP <- function(x, x_star, l, sigma_f, sigma_n, n, y) {
   k_star <- K(x, x_star, l, sigma_f)
   k_inv <- pinv(K(x, x, l, sigma_f) + sigma_n^2 * diag(n))
   f_mean = t(k_star) %*% k_inv %*% y
-  f_var = K(x_star, x_star, l, sigma_f) - t(k_star) %*% k_inv %*% k_star
-  list(f_mean, f_var)
+  f_cov = K(x_star, x_star, l, sigma_f) - t(k_star) %*% k_inv %*% k_star
+  list(f_mean, f_cov)
 }
 
 # Function to sample, predict, and plot
-plot_GP = function(n_samp, n_pred, l, sigma_f, sigma_n) {
+plot_GP_regression = function(n_obs, l, sigma_f, sigma_n) {
+  # Number of data points to predict
+  n_pred = 100
+  
   # Grid to sample/predict values over
-  x_grid <- seq(0, 1, len = n_samp)
+  x_obs <- seq(0, 1, len = n_obs)
   x_pred <- seq(0, 1, len = n_pred)
   
   # Sample from GP
-  y_grid = samp_GP(x_grid, l, sigma_f, n_samp)
+  y_obs = samp_GP(K(x_obs, x_obs, l, sigma_f), n_obs) + 
+    rnorm(n_obs, sd = sigma_n)
   
   # Predict mean and variance given samples
-  y_pred = pred_GP(x_grid, x_pred, l, sigma_f, sigma_n, n_samp, y_grid)
+  y_pred = pred_GP(x_obs, x_pred, l, sigma_f, sigma_n, n_obs, y_obs)
+  se = sqrt(diag(y_pred[[2]]))
   
   # Plot samples
-  plot(
-    x_grid, y_grid, main = "Gaussian process regression", xlab = "x", 
-    ylab = "f(x)"
+  matplot(
+    x_pred, matrix(y_pred[[1]], n_pred, 3) + cbind(0, 1.96 * se, -1.96 * se),
+    main = "Gaussian process regression", xlab = "x", ylab = "f(x)", t = 'l',
+    col = 2, lty = c(1, 2, 2)
   )
-  lines(x_pred, y_pred[[1]], col = 2)
-  lines(x_pred, y_pred[[1]] + 1.96 * sqrt(diag(y_pred[[2]])), col = 2, lty = 2)
-  lines(x_pred, y_pred[[1]] - 1.96 * sqrt(diag(y_pred[[2]])), col = 2, lty = 2)
+  points(x_obs, y_obs)
+  
+  # Sample from posterior GP and plot
+  for (r in 1:3) lines(x_pred, samp_GP(y_pred[[2]], n_pred, y_pred[[1]]))
 }
