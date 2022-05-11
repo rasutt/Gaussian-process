@@ -53,10 +53,32 @@ pred_GP_old <- function(x, x_star, l, sigma_f, sigma_n, n, y) {
 pred_GP <- function(x, x_star, l, sigma_f, sigma_n, n, y) {
   k_star <- K(x, x_star, l, sigma_f)
   L = t(chol(K(x, x, l, sigma_f) + sigma_n^2 * diag(n)))
-  f_mean = t(k_star) %*% solve(t(L), solve(L, y))
+  alpha = solve(t(L), solve(L, y))
+  f_mean = t(k_star) %*% alpha
   v = solve(L, k_star)
   f_cov = K(x_star, x_star, l, sigma_f) - t(v) %*% v
-  list(f_mean, f_cov)
+  lml = t(y) %*% alpha / 2 + sum(diag(L)) - n/2 * log(2 * pi)
+  list(f_mean, f_cov, lml)
+}
+
+# Trace of matrix-product
+tr_mat_prod = function(mat1, mat2) {
+  sum(sapply(1:n_obs, function(i) mat1[i, ] %*% mat2[, i]))
+}
+
+# Partial derivatives of log marginal likelihood w.r.t. hyperparameters
+d_lml_d_hps = function(sigma_f, x, l, sigma_n, n_obs) {
+  K = K(x, x, l, sigma_f)
+  
+  K_y_inv = solve(K + sigma_n^2 * diag(n))
+  alpha = K_y_inv %*% y
+  mat_diff = alpha %*% t(alpha) - K_y_inv
+
+  list(
+    d_lml_d_sigma_f = tr_mat_prod(mat_diff, sigma_f * K),
+    d_lml_d_l = tr_mat_prod(mat_diff, K * outer(x, x, "-")^2 / l^3) / 2,
+    d_lml_d_sigma_n = diag(mat_diff) / 2
+  )
 }
 
 # Function to sample, predict, and plot
