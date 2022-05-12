@@ -93,8 +93,11 @@ lml <- function(par, n, x, y) {
 }
 
 # Optimise log marginal likelihood w.r.t. hyperparameters
-opt_lml = function() {
-  opt = optim(par, lml, d_lml_d_hp, )
+opt_lml = function(start_par, n, x, y) {
+  opt = optim(start_par, lml, d_lml_d_hps, n, x, y)
+  if (opt$convergence == 0) print("Optimiser converged")
+  else print("Optimiser did not converge")
+  opt$par
 }
 
 # Function to sample, predict, and plot
@@ -124,4 +127,39 @@ plot_GP_regression = function(n_obs, l, sigma_f, sigma_n) {
   
   # Sample from posterior GP and plot
   for (r in 1:3) lines(x_pred, samp_GP(y_pred[[2]], n_pred, y_pred[[1]]))
+}
+
+plot_GP_fit <- function(n_obs, l, sigma_f, sigma_n) {
+  # Number of data points to predict
+  n_pred = 100
+  
+  # Grid to sample/predict values over
+  x_obs <- seq(0, 1, len = n_obs)
+  x_pred <- seq(0, 1, len = n_pred)
+  
+  # Sample from GP
+  y_obs = samp_GP(K(x_obs, x_obs, l, sigma_f), n_obs) + 
+    rnorm(n_obs, sd = sigma_n)
+  
+  opt_par = opt_lml(c(l, sigma_f, sigma_n), n_obs, x_obs, y_obs)
+  
+  # Predict mean and variance given samples
+  y_pred = pred_GP(
+    x_obs, x_pred, 
+    l = opt_par[1],
+    sigma_f = opt_par[2],
+    sigma_n = opt_par[3],
+    n_obs, y_obs
+  )
+  se = sqrt(diag(y_pred[[2]]))
+  
+  # Plot data and GP fit
+  plot(
+    x_obs, y_obs,
+    main = "Gaussian process fit", xlab = "x", ylab = "f(x)"
+  )
+  matlines(
+    x_pred, matrix(y_pred[[1]], n_pred, 3) + cbind(0, 1.96 * se, -1.96 * se),
+    col = 2, lty = c(1, 2, 2)
+  )
 }

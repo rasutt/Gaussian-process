@@ -3,8 +3,8 @@ title: "Gaussian Processes"
 author: "Robin Aldridge-Sutton"
 date: "07/05/2022"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -49,5 +49,14 @@ plot_GP_regression(
 ```
 
 There are various methods of model selection and hyper-parameter tuning.
+
+```{r}
+plot_GP_fit(
+  n_obs = 5, # Number of points to observe
+  l = 0.1, # Length scale
+  sigma_f = 1, # Function standard deviation
+  sigma_n = 0.1 # Noise standard deviation
+)
+```
 
 These notes were taken mainly from C. E. Rasmussen & C. K. I. Williams, Gaussian Processes for Machine Learning, the MIT Press, 2006.
