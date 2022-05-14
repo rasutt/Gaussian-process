@@ -95,8 +95,7 @@ lml <- function(par, n, x, y) {
 # Optimise log marginal likelihood w.r.t. hyperparameters
 opt_lml = function(start_par, n, x, y) {
   opt = optim(start_par, lml, d_lml_d_hps, n, x, y)
-  if (opt$convergence == 0) print("Optimiser converged")
-  else print("Optimiser did not converge")
+  if (opt$convergence != 0) print("Warning - Optimiser did not converge")
   opt$par
 }
 
@@ -106,7 +105,7 @@ plot_GP_regression = function(n_obs, l, sigma_f, sigma_n) {
   n_pred = 100
   
   # Grid to sample/predict values over
-  x_obs <- seq(0, 1, len = n_obs)
+  x_obs <- runif(n_obs)
   x_pred <- seq(0, 1, len = n_pred)
   
   # Sample from GP

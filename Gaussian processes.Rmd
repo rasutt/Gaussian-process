@@ -1,17 +1,23 @@
 ---
 title: "Gaussian Processes"
 author: "Robin Aldridge-Sutton"
-date: "07/05/2022"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
+editor_options: 
+  markdown: 
+    wrap: 80
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-A Gaussian process (GP) is stochastic process (a distribution over functions) such that for any finite set of input values the function values have a multivariate Gaussian distribution, e.g. for $\mathbf{x} \in \mathbb{R}^d,$
+## Definition
+
+A Gaussian process (GP) is stochastic process (a distribution over functions)
+such that for any finite set of input values the function values have a
+multivariate Gaussian distribution, e.g. for $\mathbf{x} \in \mathbb{R}^k,$
 
 $$f(\mathbf{x}) \sim N(\mu(\mathbf{x}) = \mathbf{0}, \Sigma = K(\mathbf{x}, \mathbf{x})),$$
 $$K(\mathbf{x}, \mathbf{x}')_{i, j} = \sigma_f^2 \exp\left(\frac{(x_i - x'_j)^2}{2 l^2} \right).$$
@@ -28,9 +34,22 @@ plot_GP_samps(
 )
 ```
 
+## Connection to inner product and basis function expansion
+
+Projecting the input values into a feature space with an infinite set of basis
+functions $\phi(\mathbf{x}):\mathbb{R}^d \rightarrow \mathbb{R}^N$, and taking
+the inner product in that space, defines a covariance function for a GP, and any
+positive definite covariance function can be expressed as such an inner product.
+
+For a finite set of inputs/basis functions the covariance matrix would not have
+full rank for a larger set of points, so the inverse would not exist to define a
+Gaussian distribution for them.
+
 ## Gaussian process regression
 
-A GP can be used as a functional prior.  The posterior is then the conditional distribution of functions given observations at a set of input values.  If the observations are assumed to include some Gaussian noise this is another GP, e.g.
+A GP can be used as a functional prior. The posterior is then the conditional
+distribution of functions given observations at a set of input values. If the
+observations are assumed to include some Gaussian noise this is another GP, e.g.
 
 $$\mathbf{y} = f(\mathbf{x}) + \epsilon,$$
 $$f(\mathbf{x}) \sim N(\mu(\mathbf{x}) = \mathbf{0}, \Sigma = K(\mathbf{x}, \mathbf{x})),$$
@@ -48,7 +67,21 @@ plot_GP_regression(
 )
 ```
 
-There are various methods of model selection and hyper-parameter tuning.
+## Connection to Bayesian linear regression
+
+When a Gaussian prior is placed on the weights of a linear regression model with
+Gaussian noise, and projection of the inputs into a feature space with
+infinitely many basis functions, the posterior is a Gaussian process of the same
+form as in GP regression, with the covariance function given by the inner
+product of the inputs in the feature space multiplied by the square root of the
+prior covariance matrix.
+
+## Hyper-parameter tuning
+
+There are various methods of model selection and hyper-parameter tuning. One is
+maximizing the posterior probability of the observations. The partial
+derivatives are known for some covariance functions making the numerical process
+tractable.
 
 ```{r}
 plot_GP_fit(
@@ -59,4 +92,5 @@ plot_GP_fit(
 )
 ```
 
-These notes were taken mainly from C. E. Rasmussen & C. K. I. Williams, Gaussian Processes for Machine Learning, the MIT Press, 2006.
+Notes taken mainly from Rasmussen & Williams, Gaussian Processes for Machine
+Learning, 2006.
