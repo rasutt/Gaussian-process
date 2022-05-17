@@ -3,7 +3,8 @@ title: "Gaussian Processes"
 author: "Robin Aldridge-Sutton"
 output:
   pdf_document: default
-  html_document: default
+  html_document: 
+      code_folding: hide
 editor_options: 
   markdown: 
     wrap: 80
@@ -15,15 +16,33 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Definition
 
-A Gaussian process (GP) is stochastic process (a distribution over functions)
+A Gaussian process (GP) is a stochastic process (a distribution over functions)
 such that for any finite set of input values the function values have a
 multivariate Gaussian distribution, e.g. for $\mathbf{x} \in \mathbb{R}^k,$
 
 $$f(\mathbf{x}) \sim N(\mu(\mathbf{x}) = \mathbf{0}, \Sigma = K(\mathbf{x}, \mathbf{x})),$$
-$$K(\mathbf{x}, \mathbf{x}')_{i, j} = k(x_i, x_j') = \sigma_f^2 \exp\left(\frac{(x_i - x'_j)^2}{2 l^2} \right),$$
+$$K(\mathbf{x}, \mathbf{x}')_{i, j} = k(x_i, x_j'),$$
 
-where $k(x, x')$ can be any positive semi-definite function, and is called the
-covariance function or kernel.
+where $k(x, x')$ is called the covariance or kernel function, and can be any
+positive definite function, e.g.
+
+$$\sigma_f^2 \exp\left(\frac{(x_i - x'_j)^2}{2 l^2} \right).$$
+
+A positive definite function is a function $f:\mathbb{R} \rightarrow \mathbb{C}$
+such that for any $x_1, ..., x_n \in \mathbb{R}$, the matrix
+$\Sigma = (f(x_i - x_j))_{i, j = 1}^n$ is positive semi-definite (there is an
+alternative definition in dynamical systems).
+
+You can sample from a GP by taking the square-root of the covariance matrix and
+multiplying a standard normal vector by it. (My code to do this when fitting the
+GP by MCMC had the transpose of the square-root matrix because R does it
+differently than I expected, which must be one reason it never worked. Also it
+helps to add a small value to the main diagonal before taking the square-root,
+because otherwise it can be very numerically unstable, and can fail for larger
+numbers of input values, and larger length scales. I'm not sure why that is, but
+it's mentioned in the appendix of the GP book. I think that was a problem in my
+python code which meant that I couldn't predict a large number of values at
+once.)
 
 ```{r}
 # Functions to sample from and predict values of a Gaussian process.
@@ -63,7 +82,7 @@ $$\Sigma = K(\mathbf{x}', \mathbf{x}') - K(\mathbf{x}', \mathbf{x}) [K(\mathbf{x
 
 The posterior mean function can be seen to be a linear function, either of the
 observed values, or of the covariances of the input values of the predictions
-and observations.
+with those of each of the observations.
 
 ```{r}
 plot_GP_regression(
