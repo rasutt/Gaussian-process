@@ -18,20 +18,34 @@ knitr::opts_chunk$set(echo = TRUE)
 
 A Gaussian process (GP) is a stochastic process (a distribution over functions)
 such that for any finite set of input values the function values have a
-multivariate Gaussian distribution, e.g. for $\mathbf{x} \in \mathbb{R}^k,$
+multivariate Gaussian distribution, e.g. for any $\mathbf{x} \in \mathbb{R}^k,$
 
 $$f(\mathbf{x}) \sim N(\mu(\mathbf{x}) = \mathbf{0}, \Sigma = K(\mathbf{x}, \mathbf{x})),$$
 $$K(\mathbf{x}, \mathbf{x}')_{i, j} = k(x_i, x_j'),$$
 
 where $k(x, x')$ is called the covariance or kernel function, and can be any
-positive definite function, e.g.
+real positive-definite kernel, a symmetric function making $\Sigma$ real and
+positive-definite, which means
+
+$$
+\mathbf{x}^T \Sigma \mathbf{x} > 0,
+$$
+
+implying that every linear combination of values of $f$ has positive variance,
+and $\Sigma^{-1}$ exists.
+
+## Covariance functions
+
+One kind of real positive-definite kernel is a real positive definite function
+applied to the difference between the inputs. A real positive definite function
+is a function $f:\mathbb{R} \rightarrow \mathbb{R}$ such that for any
+$x_1, ..., x_n \in \mathbb{R}$, the matrix
+$\Sigma = (f(x_i - x_j))_{i, j = 1}^n$ is positive semi-definite (there is an
+alternative definition in dynamical systems), e.g.
 
 $$\sigma_f^2 \exp\left(\frac{(x_i - x'_j)^2}{2 l^2} \right).$$
 
-A positive definite function is a function $f:\mathbb{R} \rightarrow \mathbb{C}$
-such that for any $x_1, ..., x_n \in \mathbb{R}$, the matrix
-$\Sigma = (f(x_i - x_j))_{i, j = 1}^n$ is positive semi-definite (there is an
-alternative definition in dynamical systems).
+## Sampling
 
 You can sample from a GP by taking the square-root of the covariance matrix and
 multiplying a standard normal vector by it. (My code to do this when fitting the
