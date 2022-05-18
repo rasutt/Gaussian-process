@@ -29,24 +29,22 @@ implying that every linear combination of values of $f$ has positive variance, a
 
 $$k(x_i, x_j') = \sigma_f^2 \exp\left(\frac{(x_i - x'_j)^2}{2 l^2} \right).$$
 
-This is known as the squared exponential covariance function, and is an example of a real positive definite function applied to the difference between the inputs. A real positive definite function is a function $f:\mathbb{R} \rightarrow \mathbb{R}$ such that for any $x_1, ..., x_n \in \mathbb{R}$, the matrix $\Sigma = (f(x_i - x_j))_{i, j = 1}^n$ is positive semi-definite (there is an alternative definition in dynamical systems).
-
-Connection to inner product and basis function expansion
-
-Projecting the input values into a feature space with an infinite set of basis functions $\phi(\mathbf{x}):\mathbb{R}^d \rightarrow \mathbb{R}$, and taking an inner product in that space, defines a covariance function for a GP, and any positive definite covariance function can be expressed as such an inner product.
-
-For a finite set of inputs/basis functions the covariance matrix for a larger set of points would not have full rank, so the inverse would not exist to define a Gaussian distribution for them.
+This is known as the squared exponential covariance function, and is an example of a positive-definite kernel that is defined by a function which is applied to the difference between the inputs, which is known as a positive-definite function (there is an alternative definition in dynamical systems).
 
 Sampling
 
 You can sample from a GP by taking the square-root of the covariance matrix and multiplying a standard normal vector $\mathbf{v} \sim N(\mathbf{0}, I)$ by it before adding the mean,
 
 $$
-cov(L\mathbf{v}) = Lcov(\mathbf{v})L^T = LL^T = \Sigma
+cov(L\mathbf{v} + \mu(\mathbf{x})) = Lcov(\mathbf{v})L^T = LL^T = \Sigma
 $$
 
 $$
 E(L\mathbf{v} + \mu(\mathbf{x})) = LE(\mathbf{v}) + \mu(\mathbf{x}) = \mu(\mathbf{x})
+$$
+
+$$
+\implies L \mathbf{v} + \mu(\mathbf{x}) \sim N(\mu(\mathbf{x}), \Sigma)
 $$
 
 {r}
@@ -76,13 +74,31 @@ plot_GP_regression(
   sigma_n = 0.1 # Noise standard deviation
 )
 
-Connection to Bayesian linear regression
+Connection to Bayesian linear models with infinitely many basis functions
 
-When a Gaussian prior is placed on the weights of a linear regression model, with Gaussian noise and projection of the inputs into a feature space with infinitely many basis functions, the posterior is a Gaussian process of the same form as in GP regression, with the covariance function given by multiplying the projection of the inputs in the feature space by the square root of the prior covariance matrix and taking the inner product.
+Placing a Gaussian prior on the weights of a Bayesian linear model that projects the inputs into a feature space with infinitely many basis functions $\phi(\mathbf{x}):\mathbb{R}^d \rightarrow \mathbb{R}$, defines a GP prior on the model function.  Taking observed input values as column vectors we have
 
+$$
+f(\mathbf{X}) = \phi(\mathbf{X})^T\mathbf{w},
 $$
 
 $$
+\mathbf{w} \sim N(\mathbf{0}, \Sigma_p),
+$$
+
+$$
+\implies f(\mathbf{X}) \sim N(\mathbf{0}, \phi(\mathbf{X})^T \Sigma_p \phi(\mathbf{X})).
+$$
+
+For a finite set of basis functions the covariance matrix for a larger set of inputs would not have full rank, so the inverse would not exist to define a Gaussian distribution for them.
+
+The covariance function multiplies the projection of the inputs in the feature space by the square root of the prior covariance matrix and takes the inner product.  
+
+$$
+\phi(\mathbf{X})^T \Sigma_p \phi(\mathbf{X}') = \phi(\mathbf{X})^T L_p L_p^T \phi(\mathbf{X}') = (L_p^T \phi(\mathbf{X})) . (L_p^T \phi(\mathbf{X}'))
+$$
+
+Any infinite-dimensional inner product defines a covariance function, and any covariance function can be expressed as such an inner product.
 
 Hyper-parameter tuning
 
