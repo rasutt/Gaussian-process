@@ -105,7 +105,7 @@ plot_GP_regression = function(n_obs, l, sigma_f, sigma_n) {
   n_pred = 100
   
   # Grid to sample/predict values over
-  x_obs <- runif(n_obs)
+  x_obs <- runif(n_obs, 1/4, 3/4)
   x_pred <- seq(0, 1, len = n_pred)
   
   # Sample from GP
@@ -133,7 +133,7 @@ plot_GP_fit <- function(n_obs, l, sigma_f, sigma_n) {
   n_pred = 100
   
   # Grid to sample/predict values over
-  x_obs <- seq(0, 1, len = n_obs)
+  x_obs <- runif(n_obs, 1/4, 3/4)
   x_pred <- seq(0, 1, len = n_pred)
   
   # Sample from GP
@@ -155,7 +155,7 @@ plot_GP_fit <- function(n_obs, l, sigma_f, sigma_n) {
   # Plot data and GP fit
   plot(
     x_obs, y_obs,
-    main = "Gaussian process fit", xlab = "x", ylab = "f(x)"
+    main = "Gaussian process fit", xlab = "x", ylab = "f(x)", xlim = 0:1
   )
   matlines(
     x_pred, matrix(y_pred[[1]], n_pred, 3) + cbind(0, 1.96 * se, -1.96 * se),

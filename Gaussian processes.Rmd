@@ -14,6 +14,9 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Notes taken mainly from Rasmussen & Williams, Gaussian Processes for Machine
+Learning, 2006.
+
 ## Definition
 
 A Gaussian process (GP) is a collection of random variables, any finite number
@@ -148,5 +151,36 @@ plot_GP_fit(
 )
 ```
 
-Notes taken mainly from Rasmussen & Williams, Gaussian Processes for Machine
-Learning, 2006.
+## What is the maximum likelihood analog of GPR?
+
+In GPR a prior is put on the function. It's non-parametric, and without the
+prior there's no model. In the analogous basis function linear regression, there
+are infinitely many weights, so it seems impossible to find a finite set that
+maximize the likelihood. For a large but finite set of basis functions it would
+be possible, and this would approach GP regression from a maximum likelihood
+perspective as the set gets larger. This is interesting as it does not require a
+prior.
+
+Actually I think the book says that SVMs are the analog, because they also use
+kernels. I should look into that.
+
+Can't you just see the hyperparameters as parameters? You still need the prior
+to get the model though. I guess you can see it either way though, as a
+posterior given a prior, where you maximise the posterior predictive likelihood,
+or just as a model likelihood that you maximise. The prior makes more sense
+though, and depending on the parameters chosen the predictions return to the
+prior mean and variance more or less quickly. But I guess that's just a part of
+the model, same as the variance increasing away from the data in a linear model.
+
+If you look at it this way you can put a prior on the hyperparameters, which
+just become parameters, otherwise you would be going into a hierarchical model.
+It seems like in general you can see a posterior predictive distribution as just
+another model likelihood and maximise it. Maximisation kind of seems to defeat
+the purpose of Bayesian modelling in the first place which is about using a
+whole posterior, isn't it? I dunno, it seems like their really just two ways of
+looking at the same thing?
+
+I also wonder if it is a useful analogy to deep learning. Though the parameter
+intialisation in deep learning seems to be a kind of prior. I wonder if that's
+true for any numerical approach to MLE. People don't seem to have said. I guess
+it's probably not. But there does seem to be some analogy.
