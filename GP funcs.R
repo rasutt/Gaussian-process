@@ -11,13 +11,13 @@ samp_GP <- function(K, n_obs, mu = 0) {
   # Independent variance added for stability of Cholesky decomposition.
   # Transpose of Cholesky taken as upper triangular implementation rather than
   # lower.
-  t(chol(K + 1e-10 * diag(n_obs))) %*% rnorm(n_obs) + mu
+  t(chol(K + 1e-12 * diag(n_obs))) %*% rnorm(n_obs) + mu
 }
 
 # Plot samples from a GP
 plot_GP_samps = function(l, sigma_f, n_samps) {
   # Set number of samples
-  n_obs = 100
+  n_obs = 400
 
   # Grid to sample/predict values over
   x <- seq(0, 1, len = n_obs)

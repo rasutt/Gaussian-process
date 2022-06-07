@@ -69,7 +69,7 @@ source("GP funcs.R")
 
 # Plot samples from a GP
 plot_GP_samps(
-  l = 0.1, # Length scale
+  l = 0.01, # Length scale
   sigma_f = 1, # Function standard deviation
   n_samps = 3 # Number of samples
 )
